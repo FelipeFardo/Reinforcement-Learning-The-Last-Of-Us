@@ -173,9 +173,9 @@ class TheLastOfUsEnv(Env):
         elif bytes(newletter)==b"Z":
             reward = -10
         elif bytes(newletter)==b"G":
-            reward = 0
+            reward=0
         else:
-            reward=-1
+            reward=-0.1
         terminated = bytes(newletter) in b"GZ"
 
         newstate = self.to_s(row, col) if (out or bytes(newletter)== b"R") else self.to_s(newrow, newcol)
@@ -211,6 +211,7 @@ class TheLastOfUsEnv(Env):
                         self.P[pos][pos_inverse].append(
                         (1.0, *self.update_probability_matrix(pos_row, pos_col, pos_inverse)))
 
+
         if self.render_mode == "human":
             self.render()
         return (int(s), r, t, False, {"prob": p})
@@ -226,6 +227,30 @@ class TheLastOfUsEnv(Env):
         self.lastaction = None
 
         self.desc = self.initial_desc.copy()
+
+        self.nrow, self.ncol = nrow, ncol = self.desc.shape
+
+        nA = 4
+        nS = nrow * ncol
+        self.nrow, self.ncol = nrow, ncol = self.desc.shape
+        self.P = {s: {a: [] for a in range(nA)} for s in range(nS)}
+        self.is_slippery = self.is_slippery
+        for row in range(nrow):
+            for col in range(ncol):
+                s = self.to_s(row, col)
+                for a in range(4):
+                    li = self.P[s][a]
+                    letter = self.desc[row, col]
+                    if letter in b"Z":
+                        li.append((1.0, s, 0, True))
+                    else:
+                        if self.is_slippery:
+                            for b in [(a - 1) % 4, a, (a + 1) % 4]:
+                                li.append(
+                                    (1.0 / 3.0, * self.update_probability_matrix(row, col, b))
+                                )
+                        else:
+                            li.append((1.0, * self.update_probability_matrix(row, col, a)))
 
         if self.render_mode == "human":
             self.render()
