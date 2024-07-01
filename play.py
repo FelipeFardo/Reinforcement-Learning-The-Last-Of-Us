@@ -27,7 +27,9 @@ try:
     print("Q-table load success.")
 except FileNotFoundError:
     print("No Q-table found, creating a new one.")
+print(env.P)
 
+print(qtable)
 def getProbArgMax(possible_actions):
     probabilities = np.exp(possible_actions / tau) / np.sum(np.exp(possible_actions / tau))
     # Seleção da ação baseada nas probabilidades
